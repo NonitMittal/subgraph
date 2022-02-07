@@ -1,4 +1,4 @@
-import { BigInt, DataSourceContext } from "@graphprotocol/graph-ts";
+import { BigInt, DataSourceContext, Address } from "@graphprotocol/graph-ts";
 import { BookPublished } from "../generated/Publisher/Publisher";
 import { Book, BookMetaData } from "../generated/schema";
 import { Book as BookContract } from "../generated/templates";
@@ -12,6 +12,7 @@ export function handleBookPublished(event: BookPublished): void {
     let newBook = new Book(event.params.bookId.toString());
     newBook.metadataUri = event.params.metadataUri.toString();
     newBook.coverPageUri = event.params.coverPageUri.toString();
+    newBook.publisher = event.params.publisher;
     newBook.price = event.params.price;
     newBook.royalty = event.params.royalty;
     newBook.edition = event.params.edition;
@@ -22,10 +23,11 @@ export function handleBookPublished(event: BookPublished): void {
     newBook.totalRevenue = new BigInt(0);
     newBook.withdrawableRevenue = new BigInt(0);
     newBook.pricedBooksPrinted = new BigInt(0);
-    newBook.freeBooksPrinted = new BigInt(0);
+    newBook.distributedBooksPrinted = new BigInt(0);
     newBook.contributors = [];
     newBook.save();
   }
 }
 
 // remining IPFS
+// 0x82Ffc6d4c895B629f2fB3b27d15aC9620AA02561

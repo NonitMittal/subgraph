@@ -21,7 +21,7 @@ dataSources:
         - name: Publisher
           file: ./abis/Publisher.json
       eventHandlers:
-        - event: BookPublished(uint256,bytes32,bytes32,uint256,uint256,uint256,indexed address,bool,uint256,indexed address)
+        - event: BookPublished(uint256,indexed address,bytes32,bytes32,uint256,uint256,uint256,indexed address,bool,uint256,indexed address)
           handler: handleBookPublished
       file: ./mappings/Publisher.ts
   - kind: ethereum/contract

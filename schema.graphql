@@ -15,7 +15,7 @@ type Book @entity {
   totalRevenue: BigInt!
   withdrawableRevenue: BigInt!
   pricedBooksPrinted: BigInt!
-  freeBooksPrinted: BigInt!
+  distributedBooksPrinted: BigInt!
 }
 
 type BookMetaData @entity {
