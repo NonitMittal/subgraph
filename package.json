@@ -1,0 +1,29 @@
+{
+  "name": "subgraph",
+  "version": "0.1.0",
+  "description": "OpenShelf-OpenDesk Subgraph",
+  "main": "index.js",
+  "scripts": {
+    "codegen": "graph codegen ./subgraph.yaml",
+    "auth": "graph auth --product hosted-service",
+    "deploy": "graph deploy --product hosted-service nonitmittal/openshelf-opendesk-subgraph"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenShelf-OpenDesk/subgraph.git"
+  },
+  "keywords": [
+    "TheGraph protocol",
+    "subgraph"
+  ],
+  "author": "ishitagupta03, nonitmittal, rg12301",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OpenShelf-OpenDesk/subgraph/issues"
+  },
+  "homepage": "https://github.com/OpenShelf-OpenDesk/subgraph#readme",
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.26.0",
+    "@graphprotocol/graph-ts": "^0.24.1"
+  }
+}

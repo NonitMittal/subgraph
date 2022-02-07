@@ -1,0 +1,95 @@
+type Book @entity {
+  id: ID!
+  publisher: Bytes!
+  metadataUri: String!
+  coverPageUri: String!
+  bookMetaData: BookMetaData!
+  price: BigInt!
+  royalty: BigInt!
+  edition: BigInt!
+  prequel: Bytes!
+  supplyLimited: Boolean!
+  pricedBookSupplyLimit: BigInt!
+  contributors: [Contributor!]!
+  publishedOn: BigInt!
+  totalRevenue: BigInt!
+  withdrawableRevenue: BigInt!
+  pricedBooksPrinted: BigInt!
+  freeBooksPrinted: BigInt!
+}
+
+type BookMetaData @entity {
+  id: ID!
+  title: String!
+  subTitle: String!
+  language: String!
+  BigIntPublished: BigInt!
+  description: String!
+  copyrights: String!
+  keywords: [String!]!
+  fiction: Boolean!
+  genre: [String!]!
+  currency: String!
+}
+
+interface User {
+  id: ID!
+  profiles: [Profile!]!
+}
+
+type Profile @entity {
+  id: ID!
+  address: Bytes!
+  name: String!
+  aboutMe: String
+  handles: [Handle!]!
+}
+
+enum Platform {
+  Instagram
+  Twitter
+  LinkedIn
+  GoodReads
+}
+
+type Handle @entity {
+  id: ID!
+  platform: Platform!
+  handle: String!
+}
+
+type Contributor implements User @entity {
+  id: ID!
+  profiles: [Profile!]!
+  role: String!
+  share: BigInt!
+  books: [Book!]! @derivedFrom(field: "contributors")
+}
+
+type Reader implements User @entity {
+  id: ID!
+  profiles: [Profile!]!
+  purchasedCopies: [Copy!]! @derivedFrom(field: "owner")
+  receivedCopies: [DistributedCopy!]! @derivedFrom(field: "receiver")
+}
+
+type Copy @entity {
+  id: ID!
+  book: Book!
+  owner: Reader!
+  previousOwner: Bytes!
+  lockedWith: Bytes!
+  sellingPrice: BigInt!
+  originalPrice: BigInt!
+  coverPageUri: String!
+  purchasedOn: BigInt!
+}
+
+type DistributedCopy @entity {
+  id: ID!
+  book: Book!
+  receiver: Reader!
+  originalPrice: BigInt!
+  coverPageUri: String!
+  receivedOn: BigInt!
+}
