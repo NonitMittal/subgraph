@@ -39,7 +39,7 @@ export function handleBookBought(event: BookBought): void {
       newCopy.book = bookId;
       //newCopy.owner = owner;
       book.pricedBooksPrinted = book.pricedBooksPrinted.plus(new BigInt(1));
-      book.totalRevenue = book.totalRevenue.plus(
+      book.totalSalesRevenue = book.totalSalesRevenue.plus(
         event.params.price
       );
       book.withdrawableRevenue = book.withdrawableRevenue.plus(
@@ -64,9 +64,12 @@ export function handleBookTransferred(event: BookTransferred): void {
       // copy.owner = ;
       // copy.previousOwner = copy.owner;
       copy.purchasedOn = event.block.timestamp;
-      book.totalRevenue = book.totalRevenue.plus(book.royalty);
+      book.totalRoyaltyRevenue = book.totalRoyaltyRevenue.plus(book.royalty);
       book.withdrawableRevenue = book.withdrawableRevenue.plus(
         book.royalty
+      );
+      book.transferVolume = book.transferVolume.plus(
+        new BigInt(1)
       );
       book.save();
       copy.save();
@@ -179,7 +182,7 @@ export function handleBookRedeemed(event: BookRedeemed): void {
         book.distributedBooksPrinted = book.distributedBooksPrinted.plus(
           new BigInt(1)
         );
-        book.totalRevenue = book.totalRevenue.plus(
+        book.totalDistributedRevenue = book.totalDistributedRevenue.plus(
           event.params.price
         );
         book.withdrawableRevenue = book.withdrawableRevenue.plus(
