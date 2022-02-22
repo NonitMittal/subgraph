@@ -26,12 +26,10 @@ type BookMetaData @entity {
     title: String!
     subTitle: String!
     language: String!
-    BigIntPublished: BigInt!
     description: String!
     copyrights: String!
     keywords: [String!]!
-    fiction: Boolean!
-    genre: [String!]!
+    genres: [String!]!
     currency: String!
 }
 
@@ -82,7 +80,7 @@ type Copy @entity {
     owner: Reader!
     previousOwner: Bytes!
     lockedWith: Bytes!
-    sellingPrice: BigInt!
+    # sellingPrice: BigInt!
     originalPrice: BigInt!
     coverPageUri: String!
     purchasedOn: BigInt!
