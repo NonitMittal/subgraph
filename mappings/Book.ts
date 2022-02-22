@@ -3,7 +3,7 @@ import {
   BookBought,
   BookTransferred,
   PriceUpdated,
-  SellingPriceUpdated,
+  // SellingPriceUpdated,
   MarketSupplyIncreased,
   SupplyLimited,
   SupplyUnlimited,
@@ -34,7 +34,7 @@ export function handleBookBought(event: BookBought): void {
       newCopy.coverPageUri = book.coverPageUri;
       newCopy.previousOwner = book.publisher;
       newCopy.lockedWith = new Bytes(0);
-      newCopy.sellingPrice = event.params.price;
+      // newCopy.sellingPrice = event.params.price;
       newCopy.purchasedOn = event.block.timestamp;
       newCopy.book = bookId;
       //newCopy.owner = owner;
@@ -91,18 +91,18 @@ export function handlePriceUpdated(event: PriceUpdated): void {
 
 // SellingPriceUpdated(uint256 copyUid, uint256 newSellingPrice);
 // handleSellingPriceUpdated
-export function handleSellingPriceUpdated(event: SellingPriceUpdated): void {
-  let context = dataSource.context();
-  let bookId = context.getString("bookId");
-  let book = Book.load(bookId);
-  if (book) {
-    let copy = Copy.load(event.params.copyUid.toString());
-    if (copy) {
-      copy.sellingPrice = event.params.newSellingPrice;
-      copy.save();
-    }
-  }
-}
+// export function handleSellingPriceUpdated(event: SellingPriceUpdated): void {
+//   let context = dataSource.context();
+//   let bookId = context.getString("bookId");
+//   let book = Book.load(bookId);
+//   if (book) {
+//     let copy = Copy.load(event.params.copyUid.toString());
+//     if (copy) {
+//       copy.sellingPrice = event.params.newSellingPrice;
+//       copy.save();
+//     }
+//   }
+// }
 
 // MarketSupplyIncreased(uint256 newPricedBookSupplyLimit);
 // handleMarketSupplyIncreased
