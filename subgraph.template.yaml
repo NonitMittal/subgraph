@@ -6,31 +6,41 @@ schema:
 dataSources:
     - kind: ethereum/contract
       name: Publisher
-      network: { network }
+      network: {network}
       source:
           address: "{ PublisherAddress }"
           abi: Publisher
-          startBlock: { PublisherStartBlock }
+          startBlock: {PublisherStartBlock}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
           language: wasm/assemblyscript
           entities:
               - Book
+              - Series
+              - Edition
+              - BookMetadata
+              - SeriesMetadata
           abis:
               - name: Publisher
                 file: ./abis/Publisher.json
           eventHandlers:
-              - event: BookPublished(uint256,indexed address,string,string,uint256,uint256,uint256,uint256,bool,uint256,indexed address)
-                handler: handleBookPublished
+              - event: NewBookLaunched(uint256,indexed address,string,uint256,uint256,uint256,bool,indexed address)
+                handler: handleNewBookLaunched
+              - event: NewEditionLaunched(uint256,string,uint256,uint256,uint256,bool,indexed address)
+                handler: handleNewEditionLaunched
+              - event: NewSeriesCreated(uint256,string,indexed address)
+                handler: handleNewSeriesCreated
+              - event: AddedBookToSeries(uint256,uint256)
+                handler: handleAddedBookToSeries
           file: ./mappings/Publisher.ts
     - kind: ethereum/contract
       name: Exchange
-      network: { network }
+      network: {network}
       source:
           address: "{ ExchangeAddress }"
           abi: Exchange
-          startBlock: { ExchangeStartBlock }
+          startBlock: {ExchangeStartBlock}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
@@ -49,12 +59,35 @@ dataSources:
                 handler: handleOfferAccepted
           file: ./mappings/Exchange.ts
     - kind: ethereum/contract
+      name: Profile
+      network: {network}
+      source:
+          address: "{ ProfileAddress }"
+          abi: Profile
+          startBlock: {ProfileStartBlock}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - ReaderProfile
+              - ContributorProfile
+          abis:
+              - name: Profile
+                file: ./abis/Profile.json
+          eventHandlers:
+              - event: ReaderProfileUpdated(indexed address,string)
+                handler: handleReaderProfileUpdated
+              - event: ContributorProfileUpdated(indexed address,string)
+                handler: handleContributorProfileUpdated
+          file: ./mappings/Profile.ts
+    - kind: ethereum/contract
       name: Rentor
-      network: { network }
+      network: {network}
       source:
           address: "{ RentorAddress }"
           abi: Rentor
-          startBlock: { RentorStartBlock }
+          startBlock: {RentorStartBlock}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
@@ -79,7 +112,7 @@ dataSources:
 templates:
     - name: Book
       kind: ethereum/contract
-      network: { network }
+      network: {network}
       source:
           abi: Book
       mapping:
@@ -89,13 +122,13 @@ templates:
           file: ./mappings/Book.ts
           entities:
               - Book
+              - Edition
               - Copy
               - DistributedCopy
-              - Reader
-              - Contributor
+              - Contribution
           abis:
-              - name: Book
-                file: ./abis/Book.json
+              - name: Edition
+                file: ./abis/Edition.json
           eventHandlers:
               - event: BookBought(uint256,indexed address,uint256)
                 handler: handleBookBought
@@ -103,8 +136,6 @@ templates:
                 handler: handleBookTransferred
               - event: PriceUpdated(uint256)
                 handler: handlePriceUpdated
-              # - event: SellingPriceUpdated(uint256,uint256)
-              #   handler: handleSellingPriceUpdated
               - event: MarketSupplyIncreased(uint256)
                 handler: handleMarketSupplyIncreased
               - event: SupplyUnlimited()
@@ -115,14 +146,8 @@ templates:
                 handler: handleRoyaltyUpdated
               - event: BookRedeemed(uint256,uint256,indexed address)
                 handler: handleBookRedeemed
-              - event: CoverPageUpdated(string)
-                handler: handleCoverPageUpdated
-              - event: ContributorAdded(indexed address,uint96)
+              - event: ContributorAdded(indexed address,uint96,string,uint256)
                 handler: handleContributorAdded
-              - event: ContributorRemoved(indexed address)
-                handler: handleContributorRemoved
-              - event: ContributorUpdated(indexed address,uint96)
-                handler: handleContributorUpdated
               - event: RevenueWithdrawn(uint256)
                 handler: handleRevenueWithdrawn
               - event: BookLocked(uint256,indexed address)

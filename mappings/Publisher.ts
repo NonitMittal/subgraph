@@ -1,25 +1,28 @@
 import { DataSourceContext, json, JSONValue, ipfs } from "@graphprotocol/graph-ts";
-import { BookPublished } from "../generated/Publisher/Publisher";
-import { Book, BookMetaData } from "../generated/schema";
-import { Book as BookContract } from "../generated/templates";
+import { AddedBookToSeries, NewBookLaunched, NewEditionLaunched, NewSeriesCreated } from "../generated/Publisher/Publisher";
+import { Book, Series, Edition, SeriesMetadata, EditionMetadata } from "../generated/schema";
+import { Edition as EditionContract } from "../generated/templates";
 
-export function handleBookPublished(event: BookPublished): void {
+export function handleNewBookLaunched(event: NewBookLaunched): void {
     let book = Book.load(event.params.bookId.toString());
     if (!book) {
         let context = new DataSourceContext();
-        context.setString("bookId", event.params.bookId.toString());
-        BookContract.createWithContext(event.params.bookAddress, context);
+        context.setString("editionAddress", event.params.editionAddress.toString());
+        EditionContract.createWithContext(event.params.editionAddress, context);
+
         let newBook = new Book(event.params.bookId.toString());
-        newBook.metadataUri = event.params.metadataUri.toString();
-        newBook.coverPageUri = event.params.coverPageUri.toString();
-        newBook.publisher = event.params.publisher;
-        newBook.price = event.params.price;
-        newBook.royalty = event.params.royalty;
-        newBook.edition = event.params.edition ? event.params.edition.toString() : null;
-        newBook.prequel = event.params.prequel ? event.params.prequel.toString() : null;
-        newBook.supplyLimited = event.params.supplyLimited;
-        newBook.pricedBookSupplyLimit = event.params.pricedBookSupplyLimit;
         newBook.publishedOn = event.block.timestamp;
+        newBook.publisherAddress = event.params.publisher;
+
+        let newEdition = new Edition(event.params.editionAddress.toString());
+        newEdition.bookId = event.params.bookId;
+        newEdition.editionMetadataUri = event.params.metadataUri.toString();
+        newEdition.price = event.params.price;
+        newEdition.royalty = event.params.royalty;
+        newEdition.supplyLimited = event.params.supplyLimited;
+        newEdition.pricedBookSupplyLimit = event.params.pricedBookSupplyLimit;
+        newEdition.contributions = [];
+        newEdition.revisedOn = event.block.timestamp;
 
         // loading the BookMetaData from IPFS node (nft.storage)
         let ipfsData = ipfs.cat(event.params.metadataUri.toString());
@@ -28,46 +31,123 @@ export function handleBookPublished(event: BookPublished): void {
             let object = jsonData.toObject();
 
             if (object) {
-                let metaData = new BookMetaData(event.params.bookId.toHexString());
-                metaData.title = object.get("title")!.toString();
-                metaData.subTitle = object.get("subTitle")!.toString();
-                metaData.language = object.get("language")!.toString();
-                metaData.description = object.get("description")!.toString();
-                metaData.copyrights = object.get("copyrights")!.toString();
-                metaData.keywords = object
+                let editionMetadata = new EditionMetadata(event.params.editionAddress.toString());
+                editionMetadata.title = object.get("title")!.toString();
+                editionMetadata.subtitle = object.get("subtitle")!.toString();
+                editionMetadata.language = object.get("language")!.toString();
+                editionMetadata.description = object.get("description")!.toString();
+                editionMetadata.coverPage = object.get("coverPage")!.toString();
+                editionMetadata.copyrights = object.get("copyrights")!.toString();
+                editionMetadata.currency = object.get("currency")!.toString();
+                editionMetadata.keywords = object
                     .get("keywords")!
                     .toArray()
                     .map<string>((keyword: JSONValue): string => {
                         return keyword.toString();
                     });
-                metaData.genres = object
+                editionMetadata.genres = object
                     .get("genres")!
                     .toArray()
                     .map<string>((genre: JSONValue): string => {
                         return genre.toString();
                     });
-                metaData.currency = object.get("currency")!.toString();
-
-                newBook.bookMetaData = event.params.bookId.toHexString();
-                metaData.save();
+                editionMetadata.save();
+                newEdition.editionMetadata = event.params.editionAddress.toString();
+                newBook.editions = [...newBook.editions, event.params.editionAddress.toString()];
             }
         }
+        newEdition.save();
         newBook.save();
     }
 }
 
-// type BookMetaData @entity {
-//     id: ID!
-//     title: String!
-//     subTitle: String!
-//     language: String!
-//     BigIntPublished: BigInt!
-//     description: String!
-//     copyrights: String!
-//     keywords: [String!]!
-//     fiction: Boolean!
-//     genre: [String!]!
-//     currency: String!
-// }
-// remining IPFS
-// 0x82Ffc6d4c895B629f2fB3b27d15aC9620AA02561
+export function handleNewEditionLaunched(event: NewEditionLaunched): void {
+    let book = Book.load(event.params.bookId.toString());
+    if (book) {
+        let context = new DataSourceContext();
+        context.setString("editionAddress", event.params.editionAddress.toString());
+        EditionContract.createWithContext(event.params.editionAddress, context);
+
+        let newEdition = new Edition(event.params.editionAddress.toString());
+        newEdition.editionMetadataUri = event.params.metadataUri.toString();
+        newEdition.price = event.params.price;
+        newEdition.royalty = event.params.royalty;
+        newEdition.supplyLimited = event.params.supplyLimited;
+        newEdition.pricedBookSupplyLimit = event.params.pricedBookSupplyLimit;
+        newEdition.contributions = [];
+        newEdition.revisedOn = event.block.timestamp;
+
+        // loading the BookMetaData from IPFS node (nft.storage)
+        let ipfsData = ipfs.cat(event.params.metadataUri.toString());
+        if (ipfsData) {
+            let jsonData = json.fromBytes(ipfsData);
+            let object = jsonData.toObject();
+
+            if (object) {
+                let editionMetadata = new EditionMetadata(event.params.editionAddress.toString());
+                editionMetadata.title = object.get("title")!.toString();
+                editionMetadata.subtitle = object.get("subtitle")!.toString();
+                editionMetadata.language = object.get("language")!.toString();
+                editionMetadata.description = object.get("description")!.toString();
+                editionMetadata.coverPage = object.get("coverPage")!.toString();
+                editionMetadata.copyrights = object.get("copyrights")!.toString();
+                editionMetadata.currency = object.get("currency")!.toString();
+                editionMetadata.keywords = object
+                    .get("keywords")!
+                    .toArray()
+                    .map<string>((keyword: JSONValue): string => {
+                        return keyword.toString();
+                    });
+                editionMetadata.genres = object
+                    .get("genres")!
+                    .toArray()
+                    .map<string>((genre: JSONValue): string => {
+                        return genre.toString();
+                    });
+                editionMetadata.save();
+                newEdition.editionMetadata = event.params.editionAddress.toString();
+                book.editions = [...book.editions, event.params.editionAddress.toString()];
+            }
+        }
+        newEdition.save();
+        book.save();
+    }
+}
+
+export function handleNewSeriesCreated(event: NewSeriesCreated): void {
+    let series = Series.load(event.params.seriesId.toString());
+    if(!series){
+        let newSeries = new Series(event.params.seriesId.toString());
+        newSeries.seriesMetadataUri = event.params.seriesMetadatUri.toString();
+        newSeries.books = [];
+
+        let ipfsData = ipfs.cat(event.params.seriesMetadatUri.toString());
+        if (ipfsData) {
+            let jsonData = json.fromBytes(ipfsData);
+            let object = jsonData.toObject();
+
+            if (object) {
+                let seriesMetadata = new SeriesMetadata(event.params.seriesId.toString());
+                seriesMetadata.title = object.get("title")!.toString();
+                seriesMetadata.description = object.get("description")!.toString();
+                seriesMetadata.keywords = object
+                    .get("keywords")!
+                    .toArray()
+                    .map<string>((keyword: JSONValue): string => {
+                        return keyword.toString();
+                    });
+                seriesMetadata.save();
+                newSeries.seriesMetadata = event.params.seriesId.toString();
+            }
+        }
+        newSeries.save();
+    }
+}
+
+export function handleAddedBookToSeries(event: AddedBookToSeries): void {
+    let series = Series.load(event.params.seriesId.toString());
+    if(series){
+        series.books = [...series.books, event.params.bookId.toString()];
+        series.save();
+    }
+}

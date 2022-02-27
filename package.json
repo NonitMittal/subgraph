@@ -24,6 +24,8 @@
   "homepage": "https://github.com/OpenShelf-OpenDesk/subgraph#readme",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.26.0",
-    "@graphprotocol/graph-ts": "^0.24.1"
+    "@graphprotocol/graph-ts": "^0.24.1",
+    "D": "^1.0.0",
+    "prettier": "^2.5.1"
   }
 }

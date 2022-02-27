@@ -1,49 +1,62 @@
+type Series @entity {
+    id: ID!
+    seriesMetadataUri: String!
+    seriesMetadata: SeriesMetadata!
+    books: [Book!]!
+}
+
 type Book @entity {
     id: ID!
-    publisher: Bytes!
-    metadataUri: String!
-    coverPageUri: String!
-    bookMetaData: BookMetaData!
-    price: BigInt!
-    royalty: BigInt!
-    edition: Book
-    prequel: Book
-    supplyLimited: Boolean!
-    pricedBookSupplyLimit: BigInt!
-    contributors: [Contributor!]!
+    publisherAddress: Bytes!
     publishedOn: BigInt!
-    totalSalesRevenue: BigInt!
-    totalRoyaltyRevenue: BigInt!
-    totalDistributedRevenue: BigInt!
+    editions: [Edition!]!
+    salesRevenue: BigInt!
+    royaltyRevenue: BigInt!
+    distributionRevenue: BigInt!
     transferVolume: BigInt!
     withdrawableRevenue: BigInt!
-    pricedBooksPrinted: BigInt!
+    pricedBookPrinted: BigInt!
     distributedBooksPrinted: BigInt!
 }
 
-type BookMetaData @entity {
+type Edition @entity {
+    id: ID!
+    bookId: BigInt!
+    editionMetadataUri: String!
+    editionMetadata: EditionMetadata!
+    price: BigInt!
+    royalty: BigInt!
+    supplyLimited: Boolean!
+    pricedBookSupplyLimit: BigInt!
+    contributions: [Contribution!]!
+    revisedOn: BigInt!
+    salesRevenue: BigInt!
+    royaltyRevenue: BigInt!
+    distributionRevenue: BigInt!
+    transferVolume: BigInt!
+    withdrawableRevenue: BigInt!
+    pricedBookPrinted: BigInt!
+    distributedBooksPrinted: BigInt!
+}
+
+type EditionMetadata @entity {
     id: ID!
     title: String!
-    subTitle: String!
+    subtitle: String!
     language: String!
     description: String!
+    coverPage: String!
     copyrights: String!
     keywords: [String!]!
     genres: [String!]!
     currency: String!
 }
 
-interface User {
+type SeriesMetadata @entity {
     id: ID!
-    profiles: [Profile!]!
-}
-
-type Profile @entity {
-    id: ID!
-    address: Bytes!
-    name: String!
-    aboutMe: String
-    handles: [Handle!]!
+    title: String!
+    description: String!
+    keywords: [String!]!
 }
 
 enum Platform {
@@ -59,38 +72,54 @@ type Handle @entity {
     handle: String!
 }
 
-type Contributor implements User @entity {
-    id: ID!
-    profiles: [Profile!]!
-    role: String!
-    share: BigInt!
-    books: [Book!]! @derivedFrom(field: "contributors")
+interface UserProfile {
+    username: String!
+    name: String!
+    aboutMe: String
+    handles: [Handle!]!
 }
 
-type Reader implements User @entity {
+type ReaderProfile implements UserProfile @entity {
     id: ID!
-    profiles: [Profile!]!
+    username: String!
+    name: String!
+    aboutMe: String!
+    handles: [Handle!]!
     purchasedCopies: [Copy!]! @derivedFrom(field: "owner")
     receivedCopies: [DistributedCopy!]! @derivedFrom(field: "receiver")
 }
 
+type ContributorProfile implements UserProfile @entity {
+    id: ID!
+    username: String!
+    name: String!
+    aboutMe: String!
+    handles: [Handle!]!
+    contributions: [Contribution!]! @derivedFrom(field: "contributor")
+}
+
+type Contribution @entity {
+    id: ID!
+    contributor: ContributorProfile!
+    role: String!
+    share: BigInt!
+    edition: Edition!
+}
+
 type Copy @entity {
     id: ID!
-    book: Book!
-    owner: Reader!
-    previousOwner: Bytes!
+    edition: Edition!
+    owner: ReaderProfile!
+    previousOwner: ReaderProfile!
     lockedWith: Bytes!
-    # sellingPrice: BigInt!
     originalPrice: BigInt!
-    coverPageUri: String!
     purchasedOn: BigInt!
 }
 
 type DistributedCopy @entity {
     id: ID!
-    book: Book!
-    receiver: Reader!
+    edition: Edition!
+    receiver: ReaderProfile!
     originalPrice: BigInt!
-    coverPageUri: String!
     receivedOn: BigInt!
 }
