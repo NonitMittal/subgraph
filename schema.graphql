@@ -59,42 +59,29 @@ type SeriesMetadata @entity {
     keywords: [String!]!
 }
 
-enum Platform {
-    Instagram
-    Twitter
-    LinkedIn
-    GoodReads
-}
-
-type Handle @entity {
-    id: ID!
-    platform: Platform!
-    handle: String!
-}
-
 interface UserProfile {
     username: String!
     name: String!
     aboutMe: String
-    handles: [Handle!]!
+    handles: [String!]!
 }
 
 type ReaderProfile implements UserProfile @entity {
     id: ID!
-    username: String!
-    name: String!
-    aboutMe: String!
-    handles: [Handle!]!
+    username: String
+    name: String
+    aboutMe: String
+    handles: [String!]!
     purchasedCopies: [Copy!]! @derivedFrom(field: "owner")
     receivedCopies: [DistributedCopy!]! @derivedFrom(field: "receiver")
 }
 
 type ContributorProfile implements UserProfile @entity {
     id: ID!
-    username: String!
-    name: String!
-    aboutMe: String!
-    handles: [Handle!]!
+    username: String
+    name: String
+    aboutMe: String
+    handles: [String!]!
     contributions: [Contribution!]! @derivedFrom(field: "contributor")
 }
 
