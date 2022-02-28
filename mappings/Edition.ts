@@ -13,7 +13,15 @@ import {
     BookUnlocked,
     ContributorAdded
 } from "../generated/templates/Edition/Edition";
-import {Book, Edition, Copy, DistributedCopy, Contribution} from "../generated/schema";
+import {
+    Book,
+    Edition,
+    Copy,
+    DistributedCopy,
+    Contribution,
+    ContributorProfile,
+    ReaderProfile
+} from "../generated/schema";
 
 // BookBought(uint256 copyUid, address indexed buyer, uint256 price);
 // handleBookBought
@@ -24,9 +32,9 @@ export function handleBookBought(event: BookBought): void {
 
     if (edition) {
         let book = Book.load(edition.bookId.toString());
-        let copy = Copy.load(event.params.copyUid.toString());
+        let copy = Copy.load(event.params.copyUid.toString() + editionAddress);
         if (!copy) {
-            let newCopy = new Copy(event.params.copyUid.toString());
+            let newCopy = new Copy(event.params.copyUid.toString() + editionAddress);
             newCopy.edition = editionAddress;
             newCopy.owner = event.params.buyer.toString();
             newCopy.previousOwner = book.publisherAddress.toString();
@@ -45,6 +53,12 @@ export function handleBookBought(event: BookBought): void {
             book.pricedBookPrinted = book.pricedBookPrinted.plus(new BigInt(1));
             book.save();
         }
+
+        let reader = ReaderProfile.load(event.params.buyer.toString());
+        if (!reader) {
+            reader = new ReaderProfile(event.params.buyer.toString());
+            reader.save();
+        }
     }
 }
 
@@ -56,7 +70,7 @@ export function handleBookTransferred(event: BookTransferred): void {
     let edition = Edition.load(editionAddress);
     if (edition) {
         let book = Book.load(edition.bookId.toString());
-        let copy = Copy.load(event.params.copyUid.toString());
+        let copy = Copy.load(event.params.copyUid.toString() + editionAddress);
         if (copy) {
             copy.previousOwner = copy.owner;
             copy.owner = event.params.to.toString();
@@ -72,6 +86,12 @@ export function handleBookTransferred(event: BookTransferred): void {
             book.withdrawableRevenue = book.withdrawableRevenue.plus(edition.royalty);
             book.transferVolume = book.transferVolume.plus(new BigInt(1));
             book.save();
+        }
+
+        let reader = ReaderProfile.load(event.params.to.toString());
+        if (!reader) {
+            reader = new ReaderProfile(event.params.to.toString());
+            reader.save();
         }
     }
 }
@@ -148,10 +168,12 @@ export function handleBookRedeemed(event: BookRedeemed): void {
     let edition = Edition.load(editionAddress);
     if (edition) {
         let book = Book.load(edition.bookId.toString());
-        let distributedCopy = DistributedCopy.load(event.params.distributedCopyUid.toString());
+        let distributedCopy = DistributedCopy.load(
+            event.params.distributedCopyUid.toString() + editionAddress
+        );
         if (!distributedCopy) {
             let newDistributedCopy = new DistributedCopy(
-                event.params.distributedCopyUid.toString()
+                event.params.distributedCopyUid.toString() + editionAddress
             );
             newDistributedCopy.originalPrice = event.params.price;
             newDistributedCopy.receivedOn = event.block.timestamp;
@@ -169,6 +191,12 @@ export function handleBookRedeemed(event: BookRedeemed): void {
             edition.save();
             book.save();
         }
+
+        let reader = ReaderProfile.load(event.params.receiver.toString());
+        if (!reader) {
+            reader = new ReaderProfile(event.params.receiver.toString());
+            reader.save();
+        }
     }
 }
 
@@ -178,9 +206,9 @@ export function handleContributorAdded(event: ContributorAdded): void {
     let editionAddress = context.getString("editionAddress");
     let edition = Edition.load(editionAddress);
     if (edition) {
-        const contribtionId =
-            event.params.contributorAddress.toString() + editionAddress + event.params.role;
-        let newContribution = new Contribution(contribtionId);
+        const contributionId =
+            editionAddress + event.params.contributorAddress.toString() + event.params.role;
+        let newContribution = new Contribution(contributionId);
         newContribution.contributor = event.params.contributorAddress.toString();
         newContribution.role = event.params.role;
         newContribution.share = event.params.share;
@@ -188,10 +216,12 @@ export function handleContributorAdded(event: ContributorAdded): void {
         newContribution.save();
 
         let book = Book.load(edition.bookId.toString());
-        let distributedCopy = DistributedCopy.load(event.params.distributedCopyUid.toString());
+        let distributedCopy = DistributedCopy.load(
+            event.params.distributedCopyUid.toString() + editionAddress
+        );
         if (!distributedCopy) {
             let newDistributedCopy = new DistributedCopy(
-                event.params.distributedCopyUid.toString()
+                event.params.distributedCopyUid.toString() + editionAddress
             );
             newDistributedCopy.originalPrice = new BigInt(0);
             newDistributedCopy.receivedOn = event.block.timestamp;
@@ -202,8 +232,14 @@ export function handleContributorAdded(event: ContributorAdded): void {
             newDistributedCopy.save();
             book.save();
 
-            edition.contributions = [...edition.contributions, contribtionId];
+            edition.contributions = [...edition.contributions, contributionId];
             edition.save();
+        }
+
+        let contributor = ContributorProfile.load(event.params.contributorAddress.toString());
+        if (!contributor) {
+            contributor = new ContributorProfile(event.params.contributorAddress.toString());
+            contributor.save();
         }
     }
 }
@@ -231,7 +267,7 @@ export function handleBookLocked(event: BookLocked): void {
     let editionAddress = context.getString("editionAddress");
     let edition = Edition.load(editionAddress);
     if (edition) {
-        let copy = Copy.load(event.params.copyUid.toString());
+        let copy = Copy.load(event.params.copyUid.toString() + editionAddress);
         if (copy) {
             copy.lockedWith = event.params.to;
             copy.save();
@@ -246,7 +282,7 @@ export function handleBookUnlocked(event: BookUnlocked): void {
     let editionAddress = context.getString("editionAddress");
     let edition = Edition.load(editionAddress);
     if (edition) {
-        let copy = Copy.load(event.params.copyUid.toString());
+        let copy = Copy.load(event.params.copyUid.toString() + editionAddress);
         if (copy) {
             copy.lockedWith = new Bytes(0);
             copy.save();
