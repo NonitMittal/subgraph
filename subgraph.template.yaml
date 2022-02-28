@@ -8,9 +8,9 @@ dataSources:
       name: Publisher
       network: {network}
       source:
-          address: "{ PublisherAddress }"
+          address: "{{ Publisher Contract Address }}"
           abi: Publisher
-          startBlock: {PublisherStartBlock}
+          startBlock: {{Publisher Contract Start Block}}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
@@ -19,7 +19,7 @@ dataSources:
               - Book
               - Series
               - Edition
-              - BookMetadata
+              - EditionMetadata
               - SeriesMetadata
           abis:
               - name: Publisher
@@ -35,12 +35,35 @@ dataSources:
                 handler: handleAddedBookToSeries
           file: ./mappings/Publisher.ts
     - kind: ethereum/contract
+      name: Profile
+      network: mumbai
+      source:
+          address: "{{ Profile Contract Address }}"
+          abi: Profile
+          startBlock: {{Profile Contract Start Block}}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - ReaderProfile
+              - ContributorProfile
+          abis:
+              - name: Profile
+                file: ./abis/Profile.json
+          eventHandlers:
+              - event: ReaderProfileUpdated(indexed address,string)
+                handler: handleReaderProfileUpdated
+              - event: ContributorProfileUpdated(indexed address,string)
+                handler: handleContributorProfileUpdated
+          file: ./mappings/Profile.ts
+    - kind: ethereum/contract
       name: Exchange
       network: {network}
       source:
-          address: "{ ExchangeAddress }"
+          address: "{{ Exchange Contract Address }}"
           abi: Exchange
-          startBlock: {ExchangeStartBlock}
+          startBlock: {{Exchange Contract Start Block}}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
@@ -59,35 +82,12 @@ dataSources:
                 handler: handleOfferAccepted
           file: ./mappings/Exchange.ts
     - kind: ethereum/contract
-      name: Profile
-      network: {network}
-      source:
-          address: "{ ProfileAddress }"
-          abi: Profile
-          startBlock: {ProfileStartBlock}
-      mapping:
-          kind: ethereum/events
-          apiVersion: 0.0.6
-          language: wasm/assemblyscript
-          entities:
-              - ReaderProfile
-              - ContributorProfile
-          abis:
-              - name: Profile
-                file: ./abis/Profile.json
-          eventHandlers:
-              - event: ReaderProfileUpdated(indexed address,string)
-                handler: handleReaderProfileUpdated
-              - event: ContributorProfileUpdated(indexed address,string)
-                handler: handleContributorProfileUpdated
-          file: ./mappings/Profile.ts
-    - kind: ethereum/contract
       name: Rentor
       network: {network}
       source:
-          address: "{ RentorAddress }"
+          address: "{{ Rentor Contract Address }}"
           abi: Rentor
-          startBlock: {RentorStartBlock}
+          startBlock: {{Rentor Contract Start Block}}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
@@ -110,22 +110,24 @@ dataSources:
                 handler: handleBookReturned
           file: ./mappings/Rentor.ts
 templates:
-    - name: Book
+    - name: Edition
       kind: ethereum/contract
       network: {network}
       source:
-          abi: Book
+          abi: Edition
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.6
           language: wasm/assemblyscript
-          file: ./mappings/Book.ts
+          file: ./mappings/Edition.ts
           entities:
               - Book
               - Edition
               - Copy
               - DistributedCopy
               - Contribution
+              - ContributorProfile
+              - ReaderProfile
           abis:
               - name: Edition
                 file: ./abis/Edition.json
