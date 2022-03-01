@@ -101,12 +101,54 @@ type Copy @entity {
     lockedWith: Bytes!
     originalPrice: BigInt!
     purchasedOn: BigInt!
+    rentRecord: RentRecord
+    flowRate: BigInt!
+    onRent: Boolean!
+    offers: [Offer!]! @derivedFrom(field: "copy")
 }
 
+#DistributedRecord
 type DistributedCopy @entity {
     id: ID!
     edition: Edition!
     receiver: ReaderProfile!
     originalPrice: BigInt!
     receivedOn: BigInt!
+}
+
+#RentRecord
+type RentRecord @entity {
+    id: ID!
+    copyId: BigInt!
+    edition: Edition!
+    rentStartDate: BigInt!
+    rentEndDate: BigInt
+    rentedTo: Bytes!
+    flowRate: BigInt!
+}
+
+# BuyRecord
+type BuyRecord @entity {
+    id: ID!
+    buyer: String!
+    purchaseDate: BigInt!
+    edition: Edition!
+    copyId: BigInt!
+}
+
+# TransferRecord
+type TransferRecord @entity {
+    id: ID!
+    to: String!
+    from: String!
+    transferDate: BigInt!
+    edition: Edition!
+    copyId: BigInt!
+}
+
+type Offer @entity {
+    id: ID!
+    copy: Copy!
+    offerPrice: BigInt!
+    offerer: Bytes!
 }

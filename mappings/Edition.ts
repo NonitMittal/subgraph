@@ -20,7 +20,9 @@ import {
     DistributedCopy,
     Contribution,
     ContributorProfile,
-    ReaderProfile
+    ReaderProfile,
+    TransferRecord,
+    BuyRecord
 } from "../generated/schema";
 
 // BookBought(uint256 copyUid, address indexed buyer, uint256 price);
@@ -53,6 +55,15 @@ export function handleBookBought(event: BookBought): void {
             book.pricedBookPrinted = book.pricedBookPrinted.plus(new BigInt(1));
             book.save();
         }
+
+        let buyRecord = new BuyRecord(
+            event.params.copyUid.toString() + editionAddress + event.block.timestamp
+        );
+        buyRecord.buyer = event.params.buyer.toString();
+        buyRecord.purchaseDate = event.block.timestamp;
+        buyRecord.copyId = event.params.copyUid;
+        buyRecord.edition = editionAddress;
+        buyRecord.save();
 
         let reader = ReaderProfile.load(event.params.buyer.toString());
         if (!reader) {
@@ -87,6 +98,16 @@ export function handleBookTransferred(event: BookTransferred): void {
             book.transferVolume = book.transferVolume.plus(new BigInt(1));
             book.save();
         }
+
+        let transferRecord = new TransferRecord(
+            event.params.copyUid.toString() + editionAddress + event.block.timestamp
+        );
+        transferRecord.to = event.params.to.toString();
+        transferRecord.from = copy.previousOwner;
+        transferRecord.copyId = event.params.copyUid;
+        transferRecord.edition = editionAddress;
+        transferRecord.transferDate = event.block.timestamp;
+        transferRecord.save();
 
         let reader = ReaderProfile.load(event.params.to.toString());
         if (!reader) {
