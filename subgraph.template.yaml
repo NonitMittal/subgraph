@@ -69,16 +69,16 @@ dataSources:
           apiVersion: 0.0.6
           language: wasm/assemblyscript
           entities:
-              - Book
+              - Offer
           abis:
               - name: Exchange
                 file: ./abis/Exchange.json
           eventHandlers:
-              - event: OfferMade()
+              - event: OfferMade(indexed address,uint256,indexed address,uint256)
                 handler: handleOfferMade
-              - event: OfferCancelled()
+              - event: OfferCancelled(indexed address,uint256,indexed address)
                 handler: handleOfferCancelled
-              - event: OfferAccepted()
+              - event: OfferAccepted(indexed address,uint256,indexed address)
                 handler: handleOfferAccepted
           file: ./mappings/Exchange.ts
     - kind: ethereum/contract
@@ -93,20 +93,19 @@ dataSources:
           apiVersion: 0.0.6
           language: wasm/assemblyscript
           entities:
-              - Book
+              - Copy
+              - RentRecord
           abis:
               - name: Rentor
                 file: ./abis/Rentor.json
           eventHandlers:
-              - event: AllBooksReturned()
-                handler: handleAllBooksReturned
-              - event: BookPutOnRent()
+              - event: BookPutOnRent(indexed address,uint256,int96)
                 handler: handleBookPutOnRent
-              - event: BookRemovedFromRent()
-                handler: handleBookRemovedFromRent
-              - event: BookTakenOnRent()
+              - event: BookRemovedFromRent(indexed address,uint256)
+                handler: handleBookRemoveFromRent
+              - event: BookTakenOnRent(indexed address,uint256,indexed address,int96)
                 handler: handleBookTakenOnRent
-              - event: BookReturned()
+              - event: BookReturned(indexed address,uint256)
                 handler: handleBookReturned
           file: ./mappings/Rentor.ts
 templates:
