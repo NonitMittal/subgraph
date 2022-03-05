@@ -1,4 +1,4 @@
-import {Bytes, dataSource, BigInt} from "@graphprotocol/graph-ts";
+import {Bytes, dataSource, BigInt, log} from "@graphprotocol/graph-ts";
 import {
     BookBought,
     BookTransferred,
@@ -35,11 +35,17 @@ export function handleBookBought(event: BookBought): void {
     if (edition) {
         let book = Book.load(edition.bookId.toString());
         let copy = Copy.load(event.params.copyUid.toString() + editionAddress);
-        if (!copy) {
+        if (!copy && book) {
+            let reader = ReaderProfile.load(event.params.buyer.toHex());
+            if (!reader) {
+                reader = new ReaderProfile(event.params.buyer.toHex());
+                reader.save();
+            }
+
             let newCopy = new Copy(event.params.copyUid.toString() + editionAddress);
             newCopy.edition = editionAddress;
-            newCopy.owner = event.params.buyer.toString();
-            newCopy.previousOwner = book.publisherAddress.toString();
+            newCopy.owner = event.params.buyer.toHex();
+            newCopy.previousOwner = book.publisherAddress.toHex();
             newCopy.lockedWith = new Bytes(0);
             newCopy.originalPrice = event.params.price;
             newCopy.purchasedOn = event.block.timestamp;
@@ -57,19 +63,13 @@ export function handleBookBought(event: BookBought): void {
         }
 
         let buyRecord = new BuyRecord(
-            event.params.copyUid.toString() + editionAddress + event.block.timestamp
+            event.params.copyUid.toString() + editionAddress + event.block.timestamp.toString()
         );
-        buyRecord.buyer = event.params.buyer.toString();
+        buyRecord.buyer = event.params.buyer.toHex();
         buyRecord.purchaseDate = event.block.timestamp;
         buyRecord.copyId = event.params.copyUid;
         buyRecord.edition = editionAddress;
         buyRecord.save();
-
-        let reader = ReaderProfile.load(event.params.buyer.toString());
-        if (!reader) {
-            reader = new ReaderProfile(event.params.buyer.toString());
-            reader.save();
-        }
     }
 }
 
@@ -82,9 +82,15 @@ export function handleBookTransferred(event: BookTransferred): void {
     if (edition) {
         let book = Book.load(edition.bookId.toString());
         let copy = Copy.load(event.params.copyUid.toString() + editionAddress);
-        if (copy) {
+        if (copy && book) {
+            let reader = ReaderProfile.load(event.params.to.toHex());
+            if (!reader) {
+                reader = new ReaderProfile(event.params.to.toHex());
+                reader.save();
+            }
+
             copy.previousOwner = copy.owner;
-            copy.owner = event.params.to.toString();
+            copy.owner = event.params.to.toHex();
             copy.purchasedOn = event.block.timestamp;
             copy.save();
 
@@ -97,22 +103,16 @@ export function handleBookTransferred(event: BookTransferred): void {
             book.withdrawableRevenue = book.withdrawableRevenue.plus(edition.royalty);
             book.transferVolume = book.transferVolume.plus(new BigInt(1));
             book.save();
-        }
 
-        let transferRecord = new TransferRecord(
-            event.params.copyUid.toString() + editionAddress + event.block.timestamp
-        );
-        transferRecord.to = event.params.to.toString();
-        transferRecord.from = copy.previousOwner;
-        transferRecord.copyId = event.params.copyUid;
-        transferRecord.edition = editionAddress;
-        transferRecord.transferDate = event.block.timestamp;
-        transferRecord.save();
-
-        let reader = ReaderProfile.load(event.params.to.toString());
-        if (!reader) {
-            reader = new ReaderProfile(event.params.to.toString());
-            reader.save();
+            let transferRecord = new TransferRecord(
+                event.params.copyUid.toString() + editionAddress + event.block.timestamp.toString()
+            );
+            transferRecord.to = event.params.to.toHex();
+            transferRecord.from = copy.previousOwner;
+            transferRecord.copyId = event.params.copyUid;
+            transferRecord.edition = editionAddress;
+            transferRecord.transferDate = event.block.timestamp;
+            transferRecord.save();
         }
     }
 }
@@ -192,14 +192,20 @@ export function handleBookRedeemed(event: BookRedeemed): void {
         let distributedCopy = DistributedCopy.load(
             event.params.distributedCopyUid.toString() + editionAddress
         );
-        if (!distributedCopy) {
+        if (!distributedCopy && book) {
+            let reader = ReaderProfile.load(event.params.receiver.toHex());
+            if (!reader) {
+                reader = new ReaderProfile(event.params.receiver.toHex());
+                reader.save();
+            }
+
             let newDistributedCopy = new DistributedCopy(
                 event.params.distributedCopyUid.toString() + editionAddress
             );
             newDistributedCopy.originalPrice = event.params.price;
             newDistributedCopy.receivedOn = event.block.timestamp;
             newDistributedCopy.edition = editionAddress;
-            newDistributedCopy.receiver = event.params.receiver.toString();
+            newDistributedCopy.receiver = event.params.receiver.toHex();
             if (event.params.price.gt(new BigInt(0))) {
                 edition.distributionRevenue = edition.distributionRevenue.plus(event.params.price);
                 edition.withdrawableRevenue = edition.withdrawableRevenue.plus(event.params.price);
@@ -212,12 +218,6 @@ export function handleBookRedeemed(event: BookRedeemed): void {
             edition.save();
             book.save();
         }
-
-        let reader = ReaderProfile.load(event.params.receiver.toString());
-        if (!reader) {
-            reader = new ReaderProfile(event.params.receiver.toString());
-            reader.save();
-        }
     }
 }
 
@@ -227,10 +227,23 @@ export function handleContributorAdded(event: ContributorAdded): void {
     let editionAddress = context.getString("editionAddress");
     let edition = Edition.load(editionAddress);
     if (edition) {
+        log.info("{}", [event.params.contributorAddress.toHex()]);
+        let contributor = ContributorProfile.load(event.params.contributorAddress.toHex());
+        if (!contributor) {
+            contributor = new ContributorProfile(event.params.contributorAddress.toHex());
+            contributor.save();
+        }
+
+        let reader = ReaderProfile.load(event.params.contributorAddress.toHex());
+        if (!reader) {
+            reader = new ReaderProfile(event.params.contributorAddress.toHex());
+            reader.save();
+        }
+
         const contributionId =
-            editionAddress + event.params.contributorAddress.toString() + event.params.role;
+            editionAddress + event.params.contributorAddress.toHex() + event.params.role;
         let newContribution = new Contribution(contributionId);
-        newContribution.contributor = event.params.contributorAddress.toString();
+        newContribution.contributor = event.params.contributorAddress.toHex();
         newContribution.role = event.params.role;
         newContribution.share = event.params.share;
         newContribution.edition = editionAddress;
@@ -240,27 +253,22 @@ export function handleContributorAdded(event: ContributorAdded): void {
         let distributedCopy = DistributedCopy.load(
             event.params.distributedCopyUid.toString() + editionAddress
         );
-        if (!distributedCopy) {
+        if (!distributedCopy && book) {
             let newDistributedCopy = new DistributedCopy(
                 event.params.distributedCopyUid.toString() + editionAddress
             );
             newDistributedCopy.originalPrice = new BigInt(0);
             newDistributedCopy.receivedOn = event.block.timestamp;
             newDistributedCopy.edition = editionAddress;
-            newDistributedCopy.receiver = event.params.contributorAddress.toString();
+            newDistributedCopy.receiver = event.params.contributorAddress.toHex();
             edition.distributedBooksPrinted = edition.distributedBooksPrinted.plus(new BigInt(1));
             book.distributedBooksPrinted = book.distributedBooksPrinted.plus(new BigInt(1));
             newDistributedCopy.save();
             book.save();
-
-            edition.contributions = [...edition.contributions, contributionId];
+            let tempArr = edition.contributions;
+            tempArr.push(contributionId);
+            edition.contributions = tempArr;
             edition.save();
-        }
-
-        let contributor = ContributorProfile.load(event.params.contributorAddress.toString());
-        if (!contributor) {
-            contributor = new ContributorProfile(event.params.contributorAddress.toString());
-            contributor.save();
         }
     }
 }
@@ -272,12 +280,14 @@ export function handleRevenueWithdrawn(event: RevenueWithdrawn): void {
     let edition = Edition.load(editionAddress);
     if (edition) {
         let book = Book.load(edition.bookId.toString());
-        book.withdrawableRevenue = book.withdrawableRevenue
-            .minus(edition.withdrawableRevenue)
-            .plus(event.params.withdrawableRevenue);
-        edition.withdrawableRevenue = event.params.withdrawableRevenue;
-        edition.save();
-        book.save();
+        if (book) {
+            book.withdrawableRevenue = book.withdrawableRevenue
+                .minus(edition.withdrawableRevenue)
+                .plus(event.params.withdrawableRevenue);
+            edition.withdrawableRevenue = event.params.withdrawableRevenue;
+            edition.save();
+            book.save();
+        }
     }
 }
 

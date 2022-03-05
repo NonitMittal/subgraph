@@ -59,29 +59,22 @@ type SeriesMetadata @entity {
     keywords: [String!]!
 }
 
-interface UserProfile {
-    username: String!
-    name: String!
-    aboutMe: String
-    handles: [String!]!
-}
-
-type ReaderProfile implements UserProfile @entity {
+type ReaderProfile @entity {
     id: ID!
     username: String
     name: String
     aboutMe: String
-    handles: [String!]!
+    handles: [String!]
     purchasedCopies: [Copy!]! @derivedFrom(field: "owner")
     receivedCopies: [DistributedCopy!]! @derivedFrom(field: "receiver")
 }
 
-type ContributorProfile implements UserProfile @entity {
+type ContributorProfile @entity {
     id: ID!
     username: String
     name: String
     aboutMe: String
-    handles: [String!]!
+    handles: [String!]
     contributions: [Contribution!]! @derivedFrom(field: "contributor")
 }
 

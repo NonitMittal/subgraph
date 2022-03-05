@@ -1,20 +1,25 @@
-import { DataSourceContext, json, JSONValue, ipfs } from "@graphprotocol/graph-ts";
-import { AddedBookToSeries, NewBookLaunched, NewEditionLaunched, NewSeriesCreated } from "../generated/Publisher/Publisher";
-import { Book, Series, Edition, SeriesMetadata, EditionMetadata } from "../generated/schema";
-import { Edition as EditionContract } from "../generated/templates";
+import {DataSourceContext, json, JSONValue, ipfs} from "@graphprotocol/graph-ts";
+import {
+    AddedBookToSeries,
+    NewBookLaunched,
+    NewEditionLaunched,
+    NewSeriesCreated
+} from "../generated/Publisher/Publisher";
+import {Book, Series, Edition, SeriesMetadata, EditionMetadata} from "../generated/schema";
+import {Edition as EditionContract} from "../generated/templates";
 
 export function handleNewBookLaunched(event: NewBookLaunched): void {
     let book = Book.load(event.params.bookId.toString());
     if (!book) {
         let context = new DataSourceContext();
-        context.setString("editionAddress", event.params.editionAddress.toString());
+        context.setString("editionAddress", event.params.editionAddress.toHex());
         EditionContract.createWithContext(event.params.editionAddress, context);
 
         let newBook = new Book(event.params.bookId.toString());
         newBook.publishedOn = event.block.timestamp;
         newBook.publisherAddress = event.params.publisher;
 
-        let newEdition = new Edition(event.params.editionAddress.toString());
+        let newEdition = new Edition(event.params.editionAddress.toHex());
         newEdition.bookId = event.params.bookId;
         newEdition.editionMetadataUri = event.params.metadataUri.toString();
         newEdition.price = event.params.price;
@@ -31,7 +36,7 @@ export function handleNewBookLaunched(event: NewBookLaunched): void {
             let object = jsonData.toObject();
 
             if (object) {
-                let editionMetadata = new EditionMetadata(event.params.editionAddress.toString());
+                let editionMetadata = new EditionMetadata(event.params.editionAddress.toHex());
                 editionMetadata.title = object.get("title")!.toString();
                 editionMetadata.subtitle = object.get("subtitle")!.toString();
                 editionMetadata.language = object.get("language")!.toString();
@@ -52,8 +57,10 @@ export function handleNewBookLaunched(event: NewBookLaunched): void {
                         return genre.toString();
                     });
                 editionMetadata.save();
-                newEdition.editionMetadata = event.params.editionAddress.toString();
-                newBook.editions = [...newBook.editions, event.params.editionAddress.toString()];
+                newEdition.editionMetadata = event.params.editionAddress.toHex();
+                let tempArr = newBook.editions;
+                tempArr.push(event.params.editionAddress.toHex());
+                newBook.editions = tempArr;
             }
         }
         newEdition.save();
@@ -65,10 +72,10 @@ export function handleNewEditionLaunched(event: NewEditionLaunched): void {
     let book = Book.load(event.params.bookId.toString());
     if (book) {
         let context = new DataSourceContext();
-        context.setString("editionAddress", event.params.editionAddress.toString());
+        context.setString("editionAddress", event.params.editionAddress.toHex());
         EditionContract.createWithContext(event.params.editionAddress, context);
 
-        let newEdition = new Edition(event.params.editionAddress.toString());
+        let newEdition = new Edition(event.params.editionAddress.toHex());
         newEdition.editionMetadataUri = event.params.metadataUri.toString();
         newEdition.price = event.params.price;
         newEdition.royalty = event.params.royalty;
@@ -84,7 +91,7 @@ export function handleNewEditionLaunched(event: NewEditionLaunched): void {
             let object = jsonData.toObject();
 
             if (object) {
-                let editionMetadata = new EditionMetadata(event.params.editionAddress.toString());
+                let editionMetadata = new EditionMetadata(event.params.editionAddress.toHex());
                 editionMetadata.title = object.get("title")!.toString();
                 editionMetadata.subtitle = object.get("subtitle")!.toString();
                 editionMetadata.language = object.get("language")!.toString();
@@ -105,8 +112,10 @@ export function handleNewEditionLaunched(event: NewEditionLaunched): void {
                         return genre.toString();
                     });
                 editionMetadata.save();
-                newEdition.editionMetadata = event.params.editionAddress.toString();
-                book.editions = [...book.editions, event.params.editionAddress.toString()];
+                newEdition.editionMetadata = event.params.editionAddress.toHex();
+                let tempArr = book.editions;
+                tempArr.push(event.params.editionAddress.toHex());
+                book.editions = tempArr;
             }
         }
         newEdition.save();
@@ -116,7 +125,7 @@ export function handleNewEditionLaunched(event: NewEditionLaunched): void {
 
 export function handleNewSeriesCreated(event: NewSeriesCreated): void {
     let series = Series.load(event.params.seriesId.toString());
-    if(!series){
+    if (!series) {
         let newSeries = new Series(event.params.seriesId.toString());
         newSeries.seriesMetadataUri = event.params.seriesMetadatUri.toString();
         newSeries.books = [];
@@ -146,8 +155,10 @@ export function handleNewSeriesCreated(event: NewSeriesCreated): void {
 
 export function handleAddedBookToSeries(event: AddedBookToSeries): void {
     let series = Series.load(event.params.seriesId.toString());
-    if(series){
-        series.books = [...series.books, event.params.bookId.toString()];
+    if (series) {
+        let tempArr = series.books;
+        tempArr.push(event.params.bookId.toString());
+        series.books = tempArr;
         series.save();
     }
 }
