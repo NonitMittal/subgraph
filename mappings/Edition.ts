@@ -54,12 +54,12 @@ export function handleBookBought(event: BookBought): void {
 
             edition.salesRevenue = edition.salesRevenue.plus(event.params.price);
             edition.withdrawableRevenue = edition.withdrawableRevenue.plus(event.params.price);
-            edition.pricedBookPrinted = edition.pricedBookPrinted.plus(new BigInt(1));
+            edition.pricedBookPrinted = edition.pricedBookPrinted.plus(BigInt.fromString("1"));
             edition.save();
 
             book.salesRevenue = book.salesRevenue.plus(event.params.price);
             book.withdrawableRevenue = book.withdrawableRevenue.plus(event.params.price);
-            book.pricedBookPrinted = book.pricedBookPrinted.plus(new BigInt(1));
+            book.pricedBookPrinted = book.pricedBookPrinted.plus(BigInt.fromString("1"));
             book.save();
         }
 
@@ -97,12 +97,12 @@ export function handleBookTransferred(event: BookTransferred): void {
 
             edition.royaltyRevenue = edition.royaltyRevenue.plus(edition.royalty);
             edition.withdrawableRevenue = edition.withdrawableRevenue.plus(edition.royalty);
-            edition.transferVolume = edition.transferVolume.plus(new BigInt(1));
+            edition.transferVolume = edition.transferVolume.plus(BigInt.fromString("1"));
             edition.save();
 
             book.royaltyRevenue = book.royaltyRevenue.plus(edition.royalty);
             book.withdrawableRevenue = book.withdrawableRevenue.plus(edition.royalty);
-            book.transferVolume = book.transferVolume.plus(new BigInt(1));
+            book.transferVolume = book.transferVolume.plus(BigInt.fromString("1"));
             book.save();
 
             let transferRecord = new TransferRecord(
@@ -207,14 +207,18 @@ export function handleBookRedeemed(event: BookRedeemed): void {
             newDistributedCopy.receivedOn = event.block.timestamp;
             newDistributedCopy.edition = editionAddress;
             newDistributedCopy.receiver = event.params.receiver.toHex();
-            if (event.params.price.gt(new BigInt(0))) {
+            if (event.params.price.gt(BigInt.fromString("0"))) {
                 edition.distributionRevenue = edition.distributionRevenue.plus(event.params.price);
                 edition.withdrawableRevenue = edition.withdrawableRevenue.plus(event.params.price);
                 book.distributionRevenue = book.distributionRevenue.plus(event.params.price);
                 book.withdrawableRevenue = book.withdrawableRevenue.plus(event.params.price);
             }
-            edition.distributedBooksPrinted = edition.distributedBooksPrinted.plus(new BigInt(1));
-            book.distributedBooksPrinted = book.distributedBooksPrinted.plus(new BigInt(1));
+            edition.distributedBooksPrinted = edition.distributedBooksPrinted.plus(
+                BigInt.fromString("1")
+            );
+            book.distributedBooksPrinted = book.distributedBooksPrinted.plus(
+                BigInt.fromString("1")
+            );
             newDistributedCopy.save();
             edition.save();
             book.save();
@@ -258,12 +262,16 @@ export function handleContributorAdded(event: ContributorAdded): void {
             let newDistributedCopy = new DistributedCopy(
                 event.params.distributedCopyUid.toString() + editionAddress
             );
-            newDistributedCopy.originalPrice = new BigInt(0);
+            newDistributedCopy.originalPrice = BigInt.fromString("0");
             newDistributedCopy.receivedOn = event.block.timestamp;
             newDistributedCopy.edition = editionAddress;
             newDistributedCopy.receiver = event.params.contributorAddress.toHex();
-            edition.distributedBooksPrinted = edition.distributedBooksPrinted.plus(new BigInt(1));
-            book.distributedBooksPrinted = book.distributedBooksPrinted.plus(new BigInt(1));
+            edition.distributedBooksPrinted = edition.distributedBooksPrinted.plus(
+                BigInt.fromString("1")
+            );
+            book.distributedBooksPrinted = book.distributedBooksPrinted.plus(
+                BigInt.fromString("1")
+            );
             newDistributedCopy.save();
             book.save();
             let tempArr = edition.contributions;

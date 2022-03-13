@@ -20,7 +20,7 @@ export function handleBookRemoveFromRent(event: BookRemovedFromRent): void {
     let copy = Copy.load(event.params.copyUid.toString() + event.params.editionAddress.toHex());
     if (copy) {
         copy.onRent = false;
-        copy.flowRate = new BigInt(0);
+        copy.flowRate = BigInt.fromString("0");
         copy.save();
     }
 }
