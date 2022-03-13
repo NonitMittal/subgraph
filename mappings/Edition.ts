@@ -44,6 +44,7 @@ export function handleBookBought(event: BookBought): void {
 
             let newCopy = new Copy(event.params.copyUid.toString() + editionAddress);
             newCopy.edition = editionAddress;
+            newCopy.copyUid = event.params.copyUid;
             newCopy.owner = event.params.buyer.toHex();
             newCopy.previousOwner = book.publisherAddress.toHex();
             newCopy.lockedWith = new Bytes(0);

@@ -88,6 +88,7 @@ type Contribution @entity {
 
 type Copy @entity {
     id: ID!
+    copyUid: BigInt!
     edition: Edition!
     owner: ReaderProfile!
     previousOwner: ReaderProfile!
@@ -116,7 +117,8 @@ type RentRecord @entity {
     edition: Edition!
     rentStartDate: BigInt!
     rentEndDate: BigInt
-    rentedTo: Bytes!
+    rentedTo: String!
+    rentedFrom: String!
     flowRate: BigInt!
 }
 
