@@ -113,11 +113,11 @@ type DistributedCopy @entity {
 #RentRecord
 type RentRecord @entity {
     id: ID!
-    copyId: BigInt!
+    copyUid: BigInt!
     edition: Edition!
-    rentStartDate: BigInt!
+    rentStartDate: BigInt
     rentEndDate: BigInt
-    rentedTo: String!
+    rentedTo: String
     rentedFrom: String!
     flowRate: BigInt!
 }
