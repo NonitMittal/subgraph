@@ -1,4 +1,4 @@
-import {BigInt, log, store} from "@graphprotocol/graph-ts";
+import {BigInt, store} from "@graphprotocol/graph-ts";
 import {
     BookReturned,
     BookPutOnRent,
@@ -38,7 +38,7 @@ export function handleBookRemoveFromRent(event: BookRemovedFromRent): void {
             copy.onRent = false;
             copy.flowRate = BigInt.fromString("0");
             copy.rentRecord = null;
-            copy.save;
+            copy.save();
         }
     }
 }
@@ -73,7 +73,7 @@ export function handleBookReturned(event: BookReturned): void {
             rentRecord.rentedFrom = copy.owner;
             rentRecord.save();
             copy.rentRecord = rentRecordId;
-            copy.save;
+            copy.save();
         }
     }
 }

@@ -203,6 +203,7 @@ export function handleBookRedeemed(event: BookRedeemed): void {
             let newDistributedCopy = new DistributedCopy(
                 event.params.distributedCopyUid.toString() + editionAddress
             );
+            newDistributedCopy.copyUid = event.params.distributedCopyUid;
             newDistributedCopy.originalPrice = event.params.price;
             newDistributedCopy.receivedOn = event.block.timestamp;
             newDistributedCopy.edition = editionAddress;
@@ -262,6 +263,7 @@ export function handleContributorAdded(event: ContributorAdded): void {
             let newDistributedCopy = new DistributedCopy(
                 event.params.distributedCopyUid.toString() + editionAddress
             );
+            newDistributedCopy.copyUid = event.params.distributedCopyUid;
             newDistributedCopy.originalPrice = BigInt.fromString("0");
             newDistributedCopy.receivedOn = event.block.timestamp;
             newDistributedCopy.edition = editionAddress;

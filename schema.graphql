@@ -104,6 +104,7 @@ type Copy @entity {
 #DistributedRecord
 type DistributedCopy @entity {
     id: ID!
+    copyUid: BigInt!
     edition: Edition!
     receiver: ReaderProfile!
     originalPrice: BigInt!
