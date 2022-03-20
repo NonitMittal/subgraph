@@ -145,6 +145,8 @@ type TransferRecord @entity {
 type Offer @entity {
     id: ID!
     copy: Copy!
+    copyUid: BigInt!
+    editionId: String!
     offerPrice: BigInt!
     offerer: Bytes!
 }

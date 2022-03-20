@@ -12,6 +12,8 @@ export function handleOfferMade(event: OfferMade): void {
         offer = new Offer(offerId);
     }
     offer.copy = event.params.copyUid.toString() + event.params.bookAddress.toHex();
+    offer.copyUid = event.params.copyUid;
+    offer.editionId = event.params.bookAddress.toHex();
     offer.offerPrice = event.params.offerPrice;
     offer.offerer = event.params.offerer;
     offer.save();
