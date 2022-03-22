@@ -2,133 +2,159 @@ specVersion: 0.0.4
 description: OpenShelf-OpenDesk Subgraph
 repository: https://github.com/OpenShelf-OpenDesk/subgraph
 schema:
-  file: ./schema.graphql
+    file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
-    name: Publisher
-    network: { network }
-    source:
-      address: "{ PublisherAddress }"
-      abi: Publisher
-      startBlock: { PublisherStartBlock }
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Book
-      abis:
-        - name: Publisher
-          file: ./abis/Publisher.json
-      eventHandlers:
-        - event: BookPublished(uint256,indexed address,bytes32,bytes32,uint256,uint256,uint256,indexed address,bool,uint256,indexed address)
-          handler: handleBookPublished
-      file: ./mappings/Publisher.ts
-  - kind: ethereum/contract
-    name: Exchange
-    network: { network }
-    source:
-      address: "{ ExchangeAddress }"
-      abi: Exchange
-      startBlock: { ExchangeStartBlock }
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Book
-      abis:
-        - name: Exchange
-          file: ./abis/Exchange.json
-      eventHandlers:
-        - event: OfferMade()
-          handler: handleOfferMade
-        - event: OfferCancelled()
-          handler: handleOfferCancelled
-        - event: OfferAccepted()
-          handler: handleOfferAccepted
-      file: ./mappings/Exchange.ts
-  - kind: ethereum/contract
-    name: Rentor
-    network: { network }
-    source:
-      address: "{ RentorAddress }"
-      abi: Rentor
-      startBlock: { RentorStartBlock }
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Book
-      abis:
-        - name: Rentor
-          file: ./abis/Rentor.json
-      eventHandlers:
-        - event: AllBooksReturned()
-          handler: handleAllBooksReturned
-        - event: BookPutOnRent()
-          handler: handleBookPutOnRent
-        - event: BookRemovedFromRent()
-          handler: handleBookRemovedFromRent
-        - event: BookTakenOnRent()
-          handler: handleBookTakenOnRent
-        - event: BookReturned()
-          handler: handleBookReturned
-      file: ./mappings/Rentor.ts
+    - kind: ethereum/contract
+      name: Publisher
+      network: {network}
+      source:
+          address: "{{ Publisher Contract Address }}"
+          abi: Publisher
+          startBlock: {{Publisher Contract Start Block}}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - Book
+              - Series
+              - Edition
+              - EditionMetadata
+              - SeriesMetadata
+          abis:
+              - name: Publisher
+                file: ./abis/Publisher.json
+          eventHandlers:
+              - event: NewBookLaunched(uint256,indexed address,string,uint256,uint256,uint256,bool,indexed address)
+                handler: handleNewBookLaunched
+              - event: NewEditionLaunched(uint256,string,uint256,uint256,uint256,bool,indexed address)
+                handler: handleNewEditionLaunched
+              - event: NewSeriesCreated(uint256,string,indexed address)
+                handler: handleNewSeriesCreated
+              - event: AddedBookToSeries(uint256,uint256)
+                handler: handleAddedBookToSeries
+          file: ./mappings/Publisher.ts
+    - kind: ethereum/contract
+      name: Profile
+      network: mumbai
+      source:
+          address: "{{ Profile Contract Address }}"
+          abi: Profile
+          startBlock: {{Profile Contract Start Block}}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - ReaderProfile
+              - ContributorProfile
+          abis:
+              - name: Profile
+                file: ./abis/Profile.json
+          eventHandlers:
+              - event: ReaderProfileUpdated(indexed address,string)
+                handler: handleReaderProfileUpdated
+              - event: ContributorProfileUpdated(indexed address,string)
+                handler: handleContributorProfileUpdated
+          file: ./mappings/Profile.ts
+    - kind: ethereum/contract
+      name: Exchange
+      network: {network}
+      source:
+          address: "{{ Exchange Contract Address }}"
+          abi: Exchange
+          startBlock: {{Exchange Contract Start Block}}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - Offer
+          abis:
+              - name: Exchange
+                file: ./abis/Exchange.json
+          eventHandlers:
+              - event: OfferMade(indexed address,uint256,indexed address,uint256)
+                handler: handleOfferMade
+              - event: OfferCancelled(indexed address,uint256,indexed address)
+                handler: handleOfferCancelled
+              - event: OfferAccepted(indexed address,uint256,indexed address)
+                handler: handleOfferAccepted
+          file: ./mappings/Exchange.ts
+    - kind: ethereum/contract
+      name: Rentor
+      network: {network}
+      source:
+          address: "{{ Rentor Contract Address }}"
+          abi: Rentor
+          startBlock: {{Rentor Contract Start Block}}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - Copy
+              - RentRecord
+          abis:
+              - name: Rentor
+                file: ./abis/Rentor.json
+          eventHandlers:
+              - event: BookPutOnRent(indexed address,uint256,int96)
+                handler: handleBookPutOnRent
+              - event: BookRemovedFromRent(indexed address,uint256)
+                handler: handleBookRemoveFromRent
+              - event: BookTakenOnRent(indexed address,uint256,indexed address,int96)
+                handler: handleBookTakenOnRent
+              - event: BookReturned(indexed address,uint256)
+                handler: handleBookReturned
+          file: ./mappings/Rentor.ts
 templates:
-  - name: Book
-    kind: ethereum/contract
-    network: { network }
-    source:
-      abi: Book
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./mappings/Book.ts
-      entities:
-        - Book
-        - Copy
-        - DistributedCopy
-        - Reader
-        - Contributor
-      abis:
-        - name: Book
-          file: ./abis/Book.json
-      eventHandlers:
-        - event: BookBought(uint256,indexed address,uint256)
-          handler: handleBookBought
-        - event: BookTransferred(uint256,indexed address)
-          handler: handleBookTransferred
-        - event: PriceUpdated(uint256)
-          handler: handlePriceUpdated
-        - event: SellingPriceUpdated(uint256,uint256)
-          handler: handleSellingPriceUpdated
-        - event: MarketSupplyIncreased(uint256)
-          handler: handleMarketSupplyIncreased
-        - event: SupplyUnlimited()
-          handler: handleSupplyUnlimited
-        - event: SupplyLimited()
-          handler: handleSupplyLimited
-        - event: RoyaltyUpdated(uint256)
-          handler: handleRoyaltyUpdated
-        - event: BookRedeemed(uint256,uint256,indexed address)
-          handler: handleBookRedeemed
-        - event: CoverPageUpdated(bytes32)
-          handler: handleCoverPageUpdated
-        - event: ContributorAdded(indexed address,uint96)
-          handler: handleContributorAdded
-        - event: ContributorRemoved(indexed address)
-          handler: handleContributorRemoved
-        - event: ContributorUpdated(indexed address,uint96)
-          handler: handleContributorUpdated
-        - event: RevenueWithdrawn(uint256)
-          handler: handleRevenueWithdrawn
-        - event: BookLocked(uint256,indexed address)
-          handler: handleBookLocked
-        - event: BookUnlocked(uint256)
-          handler: handleBookUnlocked
+    - name: Edition
+      kind: ethereum/contract
+      network: {network}
+      source:
+          abi: Edition
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          file: ./mappings/Edition.ts
+          entities:
+              - Book
+              - Edition
+              - Copy
+              - DistributedCopy
+              - Contribution
+              - ContributorProfile
+              - ReaderProfile
+          abis:
+              - name: Edition
+                file: ./abis/Edition.json
+          eventHandlers:
+              - event: BookBought(uint256,indexed address,uint256)
+                handler: handleBookBought
+              - event: BookTransferred(uint256,indexed address)
+                handler: handleBookTransferred
+              - event: PriceUpdated(uint256)
+                handler: handlePriceUpdated
+              - event: MarketSupplyIncreased(uint256)
+                handler: handleMarketSupplyIncreased
+              - event: SupplyUnlimited()
+                handler: handleSupplyUnlimited
+              - event: SupplyLimited()
+                handler: handleSupplyLimited
+              - event: RoyaltyUpdated(uint256)
+                handler: handleRoyaltyUpdated
+              - event: BookRedeemed(uint256,uint256,indexed address)
+                handler: handleBookRedeemed
+              - event: ContributorAdded(indexed address,uint96,string,uint256)
+                handler: handleContributorAdded
+              - event: RevenueWithdrawn(uint256)
+                handler: handleRevenueWithdrawn
+              - event: BookLocked(uint256,indexed address)
+                handler: handleBookLocked
+              - event: BookUnlocked(uint256)
+                handler: handleBookUnlocked
 features:
-  - fullTextSearch
-  - ipfsOnEthereumContracts
+    - fullTextSearch
+    - ipfsOnEthereumContracts

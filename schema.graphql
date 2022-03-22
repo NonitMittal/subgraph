@@ -1,95 +1,153 @@
+type Series @entity {
+    id: ID!
+    seriesMetadataUri: String!
+    seriesMetadata: SeriesMetadata!
+    books: [Book!]!
+}
+
 type Book @entity {
-  id: ID!
-  publisher: Bytes!
-  metadataUri: String!
-  coverPageUri: String!
-  bookMetaData: BookMetaData!
-  price: BigInt!
-  royalty: BigInt!
-  edition: BigInt!
-  prequel: Bytes!
-  supplyLimited: Boolean!
-  pricedBookSupplyLimit: BigInt!
-  contributors: [Contributor!]!
-  publishedOn: BigInt!
-  totalRevenue: BigInt!
-  withdrawableRevenue: BigInt!
-  pricedBooksPrinted: BigInt!
-  distributedBooksPrinted: BigInt!
+    id: ID!
+    publisherAddress: Bytes!
+    publishedOn: BigInt!
+    editions: [Edition!]!
+    salesRevenue: BigInt!
+    royaltyRevenue: BigInt!
+    distributionRevenue: BigInt!
+    transferVolume: BigInt!
+    withdrawableRevenue: BigInt!
+    pricedBookPrinted: BigInt!
+    distributedBooksPrinted: BigInt!
 }
 
-type BookMetaData @entity {
-  id: ID!
-  title: String!
-  subTitle: String!
-  language: String!
-  BigIntPublished: BigInt!
-  description: String!
-  copyrights: String!
-  keywords: [String!]!
-  fiction: Boolean!
-  genre: [String!]!
-  currency: String!
+type Edition @entity {
+    id: ID!
+    bookId: BigInt!
+    editionMetadataUri: String!
+    editionMetadata: EditionMetadata!
+    price: BigInt!
+    royalty: BigInt!
+    supplyLimited: Boolean!
+    pricedBookSupplyLimit: BigInt!
+    contributions: [Contribution!]!
+    revisedOn: BigInt!
+    salesRevenue: BigInt!
+    royaltyRevenue: BigInt!
+    distributionRevenue: BigInt!
+    transferVolume: BigInt!
+    withdrawableRevenue: BigInt!
+    pricedBookPrinted: BigInt!
+    distributedBooksPrinted: BigInt!
 }
 
-interface User {
-  id: ID!
-  profiles: [Profile!]!
+type EditionMetadata @entity {
+    id: ID!
+    title: String!
+    subtitle: String!
+    language: String!
+    description: String!
+    coverPage: String!
+    copyrights: String!
+    keywords: [String!]!
+    genres: [String!]!
+    currency: String!
 }
 
-type Profile @entity {
-  id: ID!
-  address: Bytes!
-  name: String!
-  aboutMe: String
-  handles: [Handle!]!
+type SeriesMetadata @entity {
+    id: ID!
+    title: String!
+    description: String!
+    keywords: [String!]!
 }
 
-enum Platform {
-  Instagram
-  Twitter
-  LinkedIn
-  GoodReads
+type ReaderProfile @entity {
+    id: ID!
+    username: String
+    name: String
+    aboutMe: String
+    handles: [String!]
+    purchasedCopies: [Copy!]! @derivedFrom(field: "owner")
+    receivedCopies: [DistributedCopy!]! @derivedFrom(field: "receiver")
 }
 
-type Handle @entity {
-  id: ID!
-  platform: Platform!
-  handle: String!
+type ContributorProfile @entity {
+    id: ID!
+    username: String
+    name: String
+    aboutMe: String
+    handles: [String!]
+    contributions: [Contribution!]! @derivedFrom(field: "contributor")
 }
 
-type Contributor implements User @entity {
-  id: ID!
-  profiles: [Profile!]!
-  role: String!
-  share: BigInt!
-  books: [Book!]! @derivedFrom(field: "contributors")
-}
-
-type Reader implements User @entity {
-  id: ID!
-  profiles: [Profile!]!
-  purchasedCopies: [Copy!]! @derivedFrom(field: "owner")
-  receivedCopies: [DistributedCopy!]! @derivedFrom(field: "receiver")
+type Contribution @entity {
+    id: ID!
+    contributor: ContributorProfile!
+    role: String!
+    share: BigInt!
+    edition: Edition!
 }
 
 type Copy @entity {
-  id: ID!
-  book: Book!
-  owner: Reader!
-  previousOwner: Bytes!
-  lockedWith: Bytes!
-  sellingPrice: BigInt!
-  originalPrice: BigInt!
-  coverPageUri: String!
-  purchasedOn: BigInt!
+    id: ID!
+    copyUid: BigInt!
+    edition: Edition!
+    owner: ReaderProfile!
+    previousOwner: ReaderProfile!
+    lockedWith: Bytes!
+    originalPrice: BigInt!
+    purchasedOn: BigInt!
+    rentRecord: RentRecord
+    flowRate: BigInt!
+    onRent: Boolean!
+    offers: [Offer!]! @derivedFrom(field: "copy")
 }
 
+#DistributedRecord
 type DistributedCopy @entity {
-  id: ID!
-  book: Book!
-  receiver: Reader!
-  originalPrice: BigInt!
-  coverPageUri: String!
-  receivedOn: BigInt!
+    id: ID!
+    copyUid: BigInt!
+    edition: Edition!
+    receiver: ReaderProfile!
+    originalPrice: BigInt!
+    receivedOn: BigInt!
 }
+
+#RentRecord
+type RentRecord @entity {
+    id: ID!
+    copyUid: BigInt!
+    edition: Edition!
+    rentStartDate: BigInt
+    rentEndDate: BigInt
+    rentedTo: String
+    rentedFrom: String!
+    flowRate: BigInt!
+}
+
+# BuyRecord
+type BuyRecord @entity {
+    id: ID!
+    buyer: String!
+    purchaseDate: BigInt!
+    edition: Edition!
+    copyId: BigInt!
+}
+
+# TransferRecord
+type TransferRecord @entity {
+    id: ID!
+    to: String!
+    from: String!
+    transferDate: BigInt!
+    edition: Edition!
+    copyId: BigInt!
+}
+
+type Offer @entity {
+    id: ID!
+    copy: Copy!
+    copyUid: BigInt!
+    editionId: String!
+    offerPrice: BigInt!
+    offerer: Bytes!
+}
+ 
