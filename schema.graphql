@@ -22,6 +22,7 @@ type Book @entity {
 type Edition @entity {
     id: ID!
     bookId: BigInt!
+    publisherAddress: Bytes!
     editionMetadataUri: String!
     editionMetadata: EditionMetadata!
     price: BigInt!
@@ -150,4 +151,3 @@ type Offer @entity {
     offerPrice: BigInt!
     offerer: Bytes!
 }
- 

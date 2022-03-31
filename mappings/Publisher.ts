@@ -21,6 +21,7 @@ export function handleNewBookLaunched(event: NewBookLaunched): void {
 
         let newEdition = new Edition(event.params.editionAddress.toHex());
         newEdition.bookId = event.params.bookId;
+        newEdition.publisherAddress = event.params.publisher;
         newEdition.editionMetadataUri = event.params.metadataUri.toString();
         newEdition.price = event.params.price;
         newEdition.royalty = event.params.royalty;
